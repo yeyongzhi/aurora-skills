@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>磁盘空间分析报告</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --surface: #ffffff;
+    --surface-2: #f0f2f5;
+    --border: #e5e8ec;
+    --text: #1d2129;
+    --text-2: #4e5969;
+    --text-3: #86909c;
+    --accent: #2f6bff;
+    --safe: #00b42a;
+    --safe-bg: #e8ffea;
+    --caution: #ff7d00;
+    --caution-bg: #fff7e8;
+    --danger: #f53f3f;
+    --danger-bg: #ffece8;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.04);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                 "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 32px 20px 64px; }
+
+  /* Header */
+  header.top { margin-bottom: 28px; }
+  header.top h1 {
+    font-size: 24px; font-weight: 700; margin: 0 0 6px;
+    letter-spacing: -.2px; display: flex; align-items: center; gap: 10px;
+  }
+  header.top h1 .dot {
+    width: 10px; height: 10px; border-radius: 3px;
+    background: var(--accent); display: inline-block;
+  }
+  .meta { color: var(--text-3); font-size: 13px; display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  .meta b { color: var(--text-2); font-weight: 600; }
+
+  /* Section title */
+  .section-title {
+    font-size: 13px; font-weight: 600; color: var(--text-3);
+    text-transform: uppercase; letter-spacing: .6px;
+    margin: 34px 0 14px;
+  }
+
+  /* Drive cards grid */
+  .drive-grid {
+    display: grid; gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
+  }
+  .drive-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow);
+  }
+  .drive-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 14px; }
+  .drive-letter { font-size: 26px; font-weight: 700; letter-spacing: -.5px; }
+  .drive-label { color: var(--text-3); font-size: 12px; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap; }
+  .drive-fs {
+    margin-left: auto; font-size: 11px; color: var(--text-3);
+    background: var(--surface-2); padding: 2px 8px; border-radius: 6px;
+  }
+  .bar-track {
+    height: 10px; background: var(--surface-2); border-radius: 6px;
+    overflow: hidden; margin: 4px 0 12px;
+  }
+  .bar-fill { height: 100%; border-radius: 6px; transition: width .4s ease; }
+  .drive-stats { display: flex; justify-content: space-between; font-size: 12px; }
+  .drive-stats .stat .v { font-weight: 600; font-size: 14px; }
+  .drive-stats .stat .k { color: var(--text-3); }
+  .drive-stats .stat.free .v { color: var(--safe); }
+
+  /* Breakdown */
+  .drive-block {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+    margin-bottom: 16px; overflow: hidden;
+  }
+  .drive-block > .block-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 18px; border-bottom: 1px solid var(--border);
+  }
+  .block-head .bl { font-size: 16px; font-weight: 700; }
+  .block-head .sub { color: var(--text-3); font-size: 12px; }
+  .block-head .right { margin-left: auto; color: var(--text-3); font-size: 12px; }
+  .item-list { padding: 8px 6px; }
+  .item {
+    display: grid; grid-template-columns: 22px 1fr auto;
+    align-items: center; gap: 10px; padding: 7px 12px; border-radius: 8px;
+  }
+  .item:hover { background: var(--surface-2); }
+  .item .ic { color: var(--text-3); font-size: 14px; text-align: center; }
+  .item .body { min-width: 0; }
+  .item .name { font-size: 13px; font-weight: 500; display: flex;
+    align-items: center; gap: 8px; }
+  .item .name .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .item .mini-track {
+    height: 6px; background: var(--surface-2); border-radius: 4px;
+    margin-top: 5px; overflow: hidden;
+  }
+  .item .mini-fill { height: 100%; background: var(--accent); border-radius: 4px; opacity: .85; }
+  .item .size { font-variant-numeric: tabular-nums; font-weight: 600;
+    font-size: 13px; white-space: nowrap; }
+  .item .pct { color: var(--text-3); font-size: 11px; font-variant-numeric: tabular-nums; }
+
+  .tag {
+    font-size: 10px; font-weight: 600; padding: 1px 7px; border-radius: 5px;
+    white-space: nowrap; line-height: 1.6;
+  }
+  .tag.safe { background: var(--safe-bg); color: var(--safe); }
+  .tag.caution { background: var(--caution-bg); color: var(--caution); }
+  .tag.system { background: var(--danger-bg); color: var(--danger); }
+  .tag.denied { background: var(--surface-2); color: var(--text-3); }
+
+  /* Cleanup */
+  .cleanup-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+  .clean-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-left-width: 4px; border-radius: 10px; padding: 14px 16px;
+  }
+  .clean-card.safe { border-left-color: var(--safe); }
+  .clean-card.caution { border-left-color: var(--caution); }
+  .clean-card.system { border-left-color: var(--danger); }
+  .clean-card .ch { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .clean-card .ch .nm { font-weight: 600; font-size: 14px; }
+  .clean-card .ch .sz { margin-left: auto; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .clean-card .path { font-size: 11px; color: var(--text-3); font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    word-break: break-all; margin-bottom: 6px; }
+  .clean-card .advice { font-size: 12px; color: var(--text-2); }
+  .clean-total { font-size: 13px; color: var(--text-2); margin-bottom: 14px; }
+  .clean-total b { color: var(--text); font-size: 15px; }
+
+  .empty { color: var(--text-3); font-size: 13px; padding: 12px 18px; }
+  footer.foot { margin-top: 40px; text-align: center; color: var(--text-3); font-size: 12px; }
+  .disclaimer {
+    background: var(--caution-bg); border: 1px solid #ffe4ba; color: #92400e;
+    border-radius: 10px; padding: 10px 14px; font-size: 12px; margin: 14px 0 0;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1><span class="dot"></span>磁盘空间分析报告</h1>
+    <div class="meta" id="meta"></div>
+  </header>
+
+  <div class="section-title">磁盘概览</div>
+  <div class="drive-grid" id="driveGrid"></div>
+
+  <div class="section-title">各盘占用明细（按大小降序）</div>
+  <div id="breakdown"></div>
+
+  <div class="section-title">清理建议</div>
+  <div class="clean-total" id="cleanTotal"></div>
+  <div class="cleanup-grid" id="cleanup"></div>
+  <div class="disclaimer">
+    ⚠️ 清理前请先确认文件用途。标记为「系统」的项目（如 pagefile.sys、hiberfil.sys、Windows
+    目录）请勿手动删除，应通过系统设置调整；标记为「谨慎」的项目请逐一核对后再处理。本报告仅做体积统计与提示，不会自动删除任何文件。
+  </div>
+
+  <footer class="foot" id="foot"></footer>
+</div>
+
+<script id="report-data" type="application/json">
+/*__DISK_DATA__*/
+</script>
+<script>
+(function () {
+  function fmt(bytes) {
+    if (bytes == null) return "—";
+    if (bytes <= 0) return "0 B";
+    var u = ["B", "KB", "MB", "GB", "TB", "PB"], i = 0, n = bytes;
+    while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; }
+    var d = n >= 100 ? 0 : n >= 10 ? 1 : 2;
+    return n.toFixed(d) + " " + u[i];
+  }
+  function pct(part, whole) {
+    if (!whole) return 0;
+    return Math.min(100, Math.max(0, (part / whole) * 100));
+  }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+      return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c];
+    });
+  }
+  function fillColor(p) {
+    if (p >= 90) return "var(--danger)";
+    if (p >= 75) return "var(--caution)";
+    return "var(--accent)";
+  }
+  var riskName = { safe: "可清理", caution: "谨慎", system: "系统", denied: "无权限" };
+
+  var data;
+  try {
+    data = JSON.parse(document.getElementById("report-data").textContent);
+  } catch (e) {
+    document.getElementById("driveGrid").innerHTML =
+      '<div class="empty">未能解析数据：' + esc(e.message) + "</div>";
+    return;
+  }
+
+  // Meta
+  var totalCap = 0, totalFree = 0;
+  data.drives.forEach(function (d) { totalCap += d.totalBytes || 0; totalFree += d.freeBytes || 0; });
+  document.getElementById("meta").innerHTML =
+    '<span>计算机：<b>' + esc(data.computerName) + "</b></span>" +
+    '<span>生成时间：<b>' + esc(data.generatedAt) + "</b></span>" +
+    "<span>磁盘数：<b>" + data.drives.length + "</b></span>" +
+    "<span>总容量：<b>" + fmt(totalCap) + "</b></span>" +
+    "<span>剩余可用：<b>" + fmt(totalFree) + "</b></span>" +
+    (data.totalScanSeconds != null
+      ? "<span>扫描耗时：<b>" + data.totalScanSeconds + " 秒</b></span>" : "");
+
+  // Drive cards
+  document.getElementById("driveGrid").innerHTML = data.drives.map(function (d) {
+    var used = d.usedBytes != null ? d.usedBytes : (d.totalBytes - d.freeBytes);
+    var p = pct(used, d.totalBytes);
+    return (
+      '<div class="drive-card">' +
+        '<div class="drive-head">' +
+          '<span class="drive-letter">' + esc(d.letter) + "</span>" +
+          '<span class="drive-label">' + esc(d.label || "本地磁盘") + "</span>" +
+          '<span class="drive-fs">' + esc(d.fileSystem || "") + "</span>" +
+        "</div>" +
+        '<div class="bar-track"><div class="bar-fill" style="width:' + p.toFixed(1) +
+          "%;background:" + fillColor(p) + '"></div></div>' +
+        '<div class="drive-stats">' +
+          '<div class="stat"><div class="v">' + fmt(used) + '</div><div class="k">已用 ' + p.toFixed(0) + "%</div></div>" +
+          '<div class="stat free" style="text-align:right"><div class="v">' + fmt(d.freeBytes) +
+            '</div><div class="k">可用 / 共 ' + fmt(d.totalBytes) + "</div></div>" +
+        "</div>" +
+      "</div>"
+    );
+  }).join("");
+
+  // Breakdown per drive
+  document.getElementById("breakdown").innerHTML = data.drives.map(function (d) {
+    if (d.scanError) {
+      return blockShell(d, '<div class="empty">扫描失败：' + esc(d.scanError) + "</div>");
+    }
+    if (!d.items || !d.items.length) {
+      return blockShell(d, '<div class="empty">未发现可统计的内容（或全部为空 / 无权限）。</div>');
+    }
+    var items = d.items.slice().sort(function (a, b) { return (b.bytes || 0) - (a.bytes || 0); });
+    var maxBytes = items[0].bytes || 1;
+    var used = d.usedBytes != null ? d.usedBytes : (d.totalBytes - d.freeBytes);
+    var rows = items.map(function (it) {
+      var w = pct(it.bytes, maxBytes);
+      var ofDrive = used ? (it.bytes / used) * 100 : 0;
+      var icon = it.type === "file" ? "📄" : "📁";
+      var tag = "";
+      if (it.accessDenied) tag = '<span class="tag denied">无权限</span>';
+      else if (it.category) tag = '<span class="tag ' + it.category + '">' + riskName[it.category] + "</span>";
+      return (
+        '<div class="item">' +
+          '<div class="ic">' + icon + "</div>" +
+          '<div class="body">' +
+            '<div class="name"><span class="nm">' + esc(it.name) + "</span>" + tag + "</div>" +
+            '<div class="mini-track"><div class="mini-fill" style="width:' + w.toFixed(1) + '%"></div></div>' +
+          "</div>" +
+          '<div style="text-align:right">' +
+            '<div class="size">' + fmt(it.bytes) + "</div>" +
+            '<div class="pct">占本盘 ' + ofDrive.toFixed(1) + "%</div>" +
+          "</div>" +
+        "</div>"
+      );
+    }).join("");
+    return blockShell(d, '<div class="item-list">' + rows + "</div>");
+  }).join("");
+
+  function blockShell(d, inner) {
+    var used = d.usedBytes != null ? d.usedBytes : (d.totalBytes - d.freeBytes);
+    var n = d.items ? d.items.length : 0;
+    return (
+      '<div class="drive-block">' +
+        '<div class="block-head">' +
+          '<span class="bl">' + esc(d.letter) + "</span>" +
+          '<span class="sub">' + esc(d.label || "本地磁盘") + "</span>" +
+          '<span class="right">已用 ' + fmt(used) + (n ? " · 顶层项目 " + n + " 个" : "") + "</span>" +
+        "</div>" + inner +
+      "</div>"
+    );
+  }
+
+  // Cleanup
+  var cleanup = (data.cleanup || []).slice().sort(function (a, b) { return (b.bytes || 0) - (a.bytes || 0); });
+  var reclaimable = cleanup.filter(function (c) { return c.risk !== "system"; })
+    .reduce(function (s, c) { return s + (c.bytes || 0); }, 0);
+  document.getElementById("cleanTotal").innerHTML = cleanup.length
+    ? "在常见缓存 / 临时目录中发现 <b>" + fmt(reclaimable) + "</b> 可能可释放的空间（不含系统文件）。"
+    : "";
+  document.getElementById("cleanup").innerHTML = cleanup.length
+    ? cleanup.map(function (c) {
+        return (
+          '<div class="clean-card ' + esc(c.risk) + '">' +
+            '<div class="ch">' +
+              '<span class="nm">' + esc(c.name) + "</span>" +
+              '<span class="tag ' + esc(c.risk) + '">' + riskName[c.risk] + "</span>" +
+              '<span class="sz">' + fmt(c.bytes) + "</span>" +
+            "</div>" +
+            '<div class="path">' + esc(c.path) + "</div>" +
+            '<div class="advice">' + esc(c.advice) + "</div>" +
+          "</div>"
+        );
+      }).join("")
+    : '<div class="empty">未发现明显的可清理缓存目录。</div>';
+
+  document.getElementById("foot").textContent =
+    "由 disk-space-analyzer skill 生成 · 仅统计与提示，不删除任何文件";
+})();
+</script>
+</body>
+</html>
