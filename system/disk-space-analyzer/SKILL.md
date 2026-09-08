@@ -1,6 +1,12 @@
 ---
 name: disk-space-analyzer
 description: 扫描 Windows 本机磁盘（C 盘、D 盘等全部盘符），统计每个盘的总容量与剩余可用空间，列出各盘下占用空间最大的文件夹/文件（按体积降序），并检测常见缓存、临时、系统占用目录给出分级清理建议，最终生成一个可离线打开的 HTML 报告。Whenever the user mentions 磁盘空间、清理 C 盘 / D 盘、disk space、磁盘占用、哪些文件占地方大、电脑空间不足、storage analysis、清理建议、find large files/folders、释放空间、或想知道某个盘里什么东西最占空间 —— 即使没有明确说"生成报告"，也应使用本 skill。仅适用于 Windows。
+platform: windows
+tags:
+  - disk
+  - cleanup
+  - powershell
+  - report
 ---
 
 # 磁盘空间分析器（disk-space-analyzer）
