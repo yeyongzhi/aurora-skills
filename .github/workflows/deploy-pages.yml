@@ -20,8 +20,8 @@ jobs:
     name: 校验 skill 元数据
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - run: python scripts/lint-skills.py
@@ -31,13 +31,18 @@ jobs:
     needs: lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - name: 扫描仓库并生成 site/data/skills.js
         run: python scripts/build-site.py
-      - uses: actions/configure-pages@v5
+      # enabled: true 会在首次运行时自动为仓库开启 Pages，
+      # 否则仓库从未配置过 Pages 时这里会报 "Get Pages site failed: Not Found"
+      - name: 启用 Pages 并写入站点元数据
+        uses: actions/configure-pages@v5
+        with:
+          enabled: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
