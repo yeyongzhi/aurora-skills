@@ -14,7 +14,7 @@ import re
 import sys
 from pathlib import Path
 
-SKIP_DIRS = {".git", "_archive", "_templates", "scripts", ".workbuddy", "node_modules"}
+SKIP_DIRS = {".git", "_archive", "_templates", "scripts", "site", ".workbuddy", "node_modules"}
 NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 MIN_DESCRIPTION = 40
 REQUIRED = ("name", "description")

@@ -28,7 +28,8 @@
 ```
 _templates/    skill 模板，新建 skill 时复制
 _archive/      废弃但有参考价值的 skill，不参与安装与检索
-scripts/       仓库工具：安装、校验、索引生成
+scripts/       仓库工具：安装、校验、站点生成
+site/          浏览站点（GitHub Pages 源目录）
 ```
 
 ## 快速开始
@@ -48,6 +49,20 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Link
 ```
 
 安装脚本会递归查找所有 `SKILL.md`，**平铺**安装到目标目录（忽略源目录层级），因此分类可以随意调整而不影响加载。
+
+## 在线浏览
+
+站点：https://yeyongzhi.github.io/aurora-skills/
+
+左侧是分类目录树，右侧是文件内容，右上角一键复制原文，`#` 锚点可直接分享到某个文件，搜索框支持匹配文件名、标签和正文内容（按 `/` 聚焦）。
+
+```bash
+python scripts/build-site.py   # 扫描仓库 -> 生成 site/data/skills.js
+```
+
+浏览器读不到仓库目录结构，所以需要这一步把内容聚合成数据文件。生成后本地双击 `site/index.html` 同样能看——数据通过 `<script>` 注入而非 `fetch`，`file://` 下不会被 CORS 拦掉。
+
+每次 push 到 `master`，[`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) 会自动重新生成并部署，线上始终是最新的。**首次使用需到仓库 Settings → Pages → Source 选择 GitHub Actions。**
 
 ## 新建一个 skill
 
@@ -70,7 +85,10 @@ cp -r _templates/skill-template development/<skill-name>
 ```bash
 python scripts/lint-skills.py          # 校验 frontmatter 完整性、命名一致性
 python scripts/lint-skills.py --strict  # 把警告也当错误（CI 用）
+python scripts/build-site.py            # 重新生成浏览站点的数据
 ```
+
+改完 skill 记得跑一次 `build-site.py`，本地预览站点才是最新的（线上由 Actions 自动处理）。
 
 分级规则：单个分类下超过 8 个 skill 时，再拆二级目录（如 `development/languages/`）。**不要提前分层**——空目录会劝退自己。
 
