@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git 提交与推送"
+  short_description: "整理改动、生成规范提交信息并推送当前分支"
+  default_prompt: "Use $git-commit-push to summarize the current changes, commit them with the project format, and push the branch."

@@ -1,62 +1,70 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>aurora-skills · Skill 浏览器</title>
-<meta name="description" content="浏览与复制 aurora-skills 仓库里的全部 Agent Skill">
-<link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f5f1">
+  <title>aurora-skills · Skill 浏览器</title>
+  <meta name="description" content="浏览、检索与复制 aurora-skills 仓库中的 Agent Skills。">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="aurora-skills 首页">
+      <span class="brand-mark" aria-hidden="true">A</span>
+      <span class="brand-copy"><strong>aurora-skills</strong><small>Agent Skill Library</small></span>
+    </a>
+    <div class="stats" id="stats" aria-live="polite"></div>
+    <label class="search-wrap" for="search">
+      <span class="search-icon" aria-hidden="true"></span>
+      <input id="search" type="search" placeholder="搜索 skill、标签或内容" autocomplete="off">
+      <kbd>/</kbd>
+    </label>
+  </header>
 
-<header>
-  <div class="brand">aurora-skills <span>Skill 浏览器</span></div>
-  <div class="stats" id="stats"></div>
-  <div class="search-wrap">
-    <input id="search" type="search" placeholder="搜索 skill、标签、内容…  ( / )" autocomplete="off">
-  </div>
-</header>
+  <main>
+    <aside id="sidebar" aria-label="Skill 目录">
+      <div class="sidebar-heading"><span>资源目录</span><span class="sidebar-dot" aria-hidden="true"></span></div>
+      <nav id="tree"></nav>
+    </aside>
 
-<main>
-  <aside id="sidebar">
-    <nav id="tree"></nav>
-  </aside>
-
-  <section id="content">
-    <div id="placeholder">
-      <h1>从左侧选一个 skill</h1>
-      <p>左侧是仓库的分类目录，点开 skill 可以看到它的全部文件。</p>
-      <ul>
-        <li>右上角的 <strong>复制</strong> 按钮复制当前文件的完整原文</li>
-        <li><strong>渲染 / 原文</strong> 切换 Markdown 预览与原始文本</li>
-        <li>勾选内容后按 <strong>Ctrl+C</strong> 可自由复制片段</li>
-        <li>地址栏的 <code>#</code> 锚点可直接分享到某个文件</li>
-      </ul>
-      <p>数据由 <code>scripts/build-site.py</code> 生成。仓库内容有更新时，重新跑一次该脚本即可。</p>
-    </div>
-
-    <div id="viewer" hidden>
-      <div class="toolbar">
-        <div class="crumb" id="crumb"></div>
-        <div class="seg">
-          <button id="view-render" class="on" type="button">渲染</button>
-          <button id="view-raw" type="button">原文</button>
+    <section id="content" aria-label="文件内容">
+      <div id="placeholder">
+        <p class="eyebrow">A CURATED SKILL LIBRARY</p>
+        <h1>把常用能力，整理成随时可复用的 Skill。</h1>
+        <p class="lead">从左侧选择一个 skill，阅读完整说明、辅助脚本与参考资料，并可一键复制到你的工作流中。</p>
+        <div class="feature-grid">
+          <div class="feature-card"><strong>清晰阅读</strong><span>精心排版的 Markdown 预览</span></div>
+          <div class="feature-card"><strong>快速检索</strong><span>按 <kbd>/</kbd> 搜索名称、标签与正文</span></div>
+          <div class="feature-card"><strong>轻松复用</strong><span>复制文件路径或完整原文</span></div>
         </div>
-        <button id="copy-path" class="btn" type="button">复制路径</button>
-        <button id="copy" class="btn primary" type="button">复制内容</button>
+        <p class="hint">仓库内容更新后，运行 <code>python scripts/build-site.py</code> 即可刷新数据。</p>
       </div>
-      <div class="file-meta" id="file-meta"></div>
-      <div id="raw-notice" class="notice" hidden></div>
-      <article class="doc markdown-body" id="rendered"></article>
-      <pre class="doc raw" id="raw" hidden><code id="raw-code"></code></pre>
-    </div>
-  </section>
-</main>
 
-<script src="data/skills.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.9.0/highlight.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.9.0/languages/powershell.min.js"></script>
-<script src="app.js"></script>
+      <div id="viewer" hidden>
+        <div class="toolbar">
+          <div class="crumb" id="crumb"></div>
+          <div class="toolbar-actions">
+            <div class="seg" aria-label="阅读模式">
+              <button id="view-render" class="on" type="button">阅读</button>
+              <button id="view-raw" type="button">源码</button>
+            </div>
+            <button id="copy-path" class="btn" type="button">复制路径</button>
+            <button id="copy" class="btn primary" type="button">复制内容</button>
+          </div>
+        </div>
+        <div class="file-meta" id="file-meta"></div>
+        <div id="raw-notice" class="notice" hidden></div>
+        <article class="doc markdown-body" id="rendered"></article>
+        <pre class="doc raw" id="raw" hidden><code id="raw-code"></code></pre>
+      </div>
+    </section>
+  </main>
+
+  <script src="data/skills.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.9.0/highlight.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.9.0/languages/powershell.min.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

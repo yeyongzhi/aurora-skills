@@ -1,0 +1,4 @@
+interface:
+  display_name: "Shadcn Vue Simple Template"
+  short_description: "创建并验证 Vue 与 shadcn-vue 基础模板"
+  default_prompt: "Use $shadcnui-vue-simple-template to create a minimal verified Vue application template."
