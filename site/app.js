@@ -19,6 +19,8 @@
   var btnRaw = document.getElementById('view-raw');
   var btnCopy = document.getElementById('copy');
   var btnCopyPath = document.getElementById('copy-path');
+  var btnExpandAll = document.getElementById('expand-all');
+  var btnCollapseAll = document.getElementById('collapse-all');
 
   var state = { path: null, mode: 'render', query: '' };
   var index = { byPath: {}, skills: [] };
@@ -129,15 +131,37 @@
     return b;
   }
 
-  function countSpan(n) {
-    var c = document.createElement('span');
-    c.className = 'count';
-    c.textContent = n;
-    return c;
-  }
-
   function matches(text, q) {
     return String(text || '').toLowerCase().indexOf(q) !== -1;
+  }
+
+  function categoryLabel(cat) {
+    var icons = {
+      development: '💻',
+      devops: '⚙️',
+      system: '🖥️',
+      'data-ai': '🤖',
+      'office-docs': '📄',
+      media: '🎨',
+      research: '🔎',
+      productivity: '✅',
+      learning: '📚',
+      finance: '📈',
+      _templates: '📋'
+    };
+    var title = cat.title || cat.name;
+    if (cat.name === '_templates') title += '（模板仅供参考）';
+    return (icons[cat.name] || '📁') + ' ' + title + '（共 ' + cat.skills.length + ' 个 skill）';
+  }
+
+  function setAllTreeNodes(open) {
+    elTree.querySelectorAll('.children').forEach(function (children) {
+      if (open) children.removeAttribute('hidden');
+      else children.setAttribute('hidden', '');
+    });
+    elTree.querySelectorAll('.caret').forEach(function (caret) {
+      caret.classList.toggle('open', open);
+    });
   }
 
   function renderTree() {
@@ -173,9 +197,8 @@
       var group = document.createElement('div');
       group.className = 'tree-group';
 
-      var catBtn = makeNode('node-cat', cat.title || cat.name);
+      var catBtn = makeNode('node-cat', categoryLabel(cat));
       catBtn.title = cat.name + '/';
-      catBtn.appendChild(countSpan(cat.skills.length));
       var catChildren = document.createElement('div');
       catChildren.className = 'children';
 
@@ -190,7 +213,7 @@
 
       visibleSkills.forEach(function (item) {
         var skill = item.skill;
-        var skillBtn = makeNode('node-skill', skill.name);
+        var skillBtn = makeNode('node-skill', '🧩 ' + skill.name);
         if (skill.platform && skill.platform !== 'all') {
           skillBtn.appendChild(badge(skill.platform === 'windows' ? 'win' : skill.platform,
             skill.platform === 'windows' ? 'win' : null));
@@ -322,6 +345,9 @@
   btnCopyPath.addEventListener('click', function () {
     if (state.path) copyText(state.path, btnCopyPath);
   });
+
+  btnExpandAll.addEventListener('click', function () { setAllTreeNodes(true); });
+  btnCollapseAll.addEventListener('click', function () { setAllTreeNodes(false); });
 
   elSearch.addEventListener('input', function () {
     state.query = elSearch.value;

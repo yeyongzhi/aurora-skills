@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f6f5f1">
+  <meta name="theme-color" content="#1890ff">
   <title>aurora-skills · Skill 浏览器</title>
   <meta name="description" content="浏览、检索与复制 aurora-skills 仓库中的 Agent Skills。">
   <link rel="stylesheet" href="styles.css">
@@ -24,7 +24,13 @@
 
   <main>
     <aside id="sidebar" aria-label="Skill 目录">
-      <div class="sidebar-heading"><span>资源目录</span><span class="sidebar-dot" aria-hidden="true"></span></div>
+      <div class="sidebar-heading">
+        <span class="sidebar-title">资源目录</span>
+        <div class="tree-actions" aria-label="目录展开控制">
+          <button id="expand-all" type="button">全部展开</button>
+          <button id="collapse-all" type="button">全部折叠</button>
+        </div>
+      </div>
       <nav id="tree"></nav>
     </aside>
 
