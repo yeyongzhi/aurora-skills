@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#1890ff">
   <title>aurora-skills · Skill 浏览器</title>
-  <meta name="description" content="浏览、检索与复制 aurora-skills 仓库中的 Agent Skills。">
+  <meta name="description" content="浏览、检索与复制 aurora-skills 仓库中的 Agent Skills 内容。">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -27,8 +27,7 @@
       <div class="sidebar-heading">
         <span class="sidebar-title">资源目录</span>
         <div class="tree-actions" aria-label="目录展开控制">
-          <button id="expand-all" type="button">全部展开</button>
-          <button id="collapse-all" type="button">全部折叠</button>
+          <button id="toggle-all" type="button" aria-expanded="false">全部展开</button>
         </div>
       </div>
       <nav id="tree"></nav>
@@ -42,7 +41,7 @@
         <div class="feature-grid">
           <div class="feature-card"><strong>清晰阅读</strong><span>精心排版的 Markdown 预览</span></div>
           <div class="feature-card"><strong>快速检索</strong><span>按 <kbd>/</kbd> 搜索名称、标签与正文</span></div>
-          <div class="feature-card"><strong>轻松复用</strong><span>复制文件路径或完整原文</span></div>
+          <div class="feature-card"><strong>轻松复用</strong><span>一键复制完整原文</span></div>
         </div>
         <p class="hint">仓库内容更新后，运行 <code>python scripts/build-site.py</code> 即可刷新数据。</p>
       </div>
@@ -55,7 +54,6 @@
               <button id="view-render" class="on" type="button">阅读</button>
               <button id="view-raw" type="button">源码</button>
             </div>
-            <button id="copy-path" class="btn" type="button">复制路径</button>
             <button id="copy" class="btn primary" type="button">复制内容</button>
           </div>
         </div>

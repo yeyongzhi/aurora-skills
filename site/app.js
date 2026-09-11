@@ -18,9 +18,7 @@
   var btnRender = document.getElementById('view-render');
   var btnRaw = document.getElementById('view-raw');
   var btnCopy = document.getElementById('copy');
-  var btnCopyPath = document.getElementById('copy-path');
-  var btnExpandAll = document.getElementById('expand-all');
-  var btnCollapseAll = document.getElementById('collapse-all');
+  var btnToggleAll = document.getElementById('toggle-all');
 
   var state = { path: null, mode: 'render', query: '' };
   var index = { byPath: {}, skills: [] };
@@ -162,6 +160,16 @@
     elTree.querySelectorAll('.caret').forEach(function (caret) {
       caret.classList.toggle('open', open);
     });
+    updateTreeToggle();
+  }
+
+  function updateTreeToggle() {
+    var children = elTree.querySelectorAll('.children');
+    var allOpen = children.length > 0 && Array.prototype.every.call(children, function (item) {
+      return !item.hasAttribute('hidden');
+    });
+    btnToggleAll.textContent = allOpen ? '全部折叠' : '全部展开';
+    btnToggleAll.setAttribute('aria-expanded', String(allOpen));
   }
 
   function renderTree() {
@@ -209,6 +217,7 @@
         if (open) catChildren.removeAttribute('hidden');
         else catChildren.setAttribute('hidden', '');
         catBtn.querySelector('.caret').classList.toggle('open', open);
+        updateTreeToggle();
       });
 
       visibleSkills.forEach(function (item) {
@@ -239,6 +248,7 @@
           if (open) fileWrap.removeAttribute('hidden');
           else fileWrap.setAttribute('hidden', '');
           skillBtn.querySelector('.caret').classList.toggle('open', open);
+          updateTreeToggle();
           var main = skill.files.filter(function (f) { return f.name === 'SKILL.md'; })[0] || skill.files[0];
           if (main) select(main.path);
         });
@@ -263,6 +273,7 @@
       empty.textContent = '没有匹配 “' + state.query + '” 的 skill';
       elTree.appendChild(empty);
     }
+    updateTreeToggle();
   }
 
   /* ---------- 内容区 ---------- */
@@ -342,12 +353,9 @@
     if (file) copyText(file.content, btnCopy);
   });
 
-  btnCopyPath.addEventListener('click', function () {
-    if (state.path) copyText(state.path, btnCopyPath);
+  btnToggleAll.addEventListener('click', function () {
+    setAllTreeNodes(btnToggleAll.getAttribute('aria-expanded') !== 'true');
   });
-
-  btnExpandAll.addEventListener('click', function () { setAllTreeNodes(true); });
-  btnCollapseAll.addEventListener('click', function () { setAllTreeNodes(false); });
 
   elSearch.addEventListener('input', function () {
     state.query = elSearch.value;
