@@ -92,12 +92,12 @@ main { display: flex; flex: 1; min-height: 0; padding: 0 16px 16px; }
 .seg { display: flex; padding: 3px; border-radius: 10px; background: var(--surface-soft); }
 .seg button { min-height: 28px; border-color: transparent; background: transparent; }
 .seg button.on { color: var(--accent-deep); border-color: var(--border-soft); background: #fff; box-shadow: 0 2px 8px rgba(52,55,47,.07); font-weight: 600; }
-.file-meta { max-width: 900px; margin: 0 auto; padding: 18px 32px 0; color: var(--ink-muted); font-size: 11px; }
+.file-meta { max-width: 900px; margin: 0; padding: 18px 32px 0; color: var(--ink-muted); font-size: 11px; }
 .file-meta a { color: var(--accent); text-decoration: none; }
 .file-meta a:hover { text-decoration: underline; }
-.notice { max-width: 836px; margin: 18px auto 0; padding: 10px 14px; color: var(--ink-soft); border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-soft); font-size: 12px; }
+.notice { max-width: 836px; margin: 18px 0 0; padding: 10px 14px; color: var(--ink-soft); border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-soft); font-size: 12px; }
 
-.doc { max-width: 900px; margin: 0 auto; padding: 26px 32px 90px; }
+.doc { max-width: 900px; margin: 0; padding: 26px 32px 90px; }
 .doc.raw { max-width: none; margin: 0; }
 .doc.raw code { font-family: var(--mono); font-size: 12px; line-height: 1.65; }
 .markdown-body { color: #30342f; font-size: 15px; line-height: 1.78; }

@@ -1,46 +1,57 @@
-name: Deploy to GitHub Pages
+name: Validate and deploy GitHub Pages
 
 on:
   push:
     branches: [master]
+  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
-# 同一时间只允许一次部署，排队而不是互相打断
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  lint:
-    name: 校验 skill 元数据
+  quality:
+    name: 校验 Skill 与站点数据
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - run: python scripts/lint-skills.py
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - run: python scripts/lint-skills.py --strict
+      - run: python -m unittest discover -s tests -v
+      - run: python scripts/build-site.py --check
+      - run: python -m py_compile scripts/build-site.py scripts/lint-skills.py scripts/skill_utils.py
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - run: node --check site/app.js
+      - run: node --check site/data/skills.js
 
   build:
-    name: 生成站点数据
-    needs: lint
+    name: 生成站点产物
+    if: github.event_name != 'pull_request'
+    needs: quality
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: 扫描仓库并生成 site/data/skills.js
-        run: python scripts/build-site.py
-      # enabled: true 会在首次运行时自动为仓库开启 Pages，
-      # 否则仓库从未配置过 Pages 时这里会报 "Get Pages site failed: Not Found"
-      - name: 启用 Pages 并写入站点元数据
-        uses: actions/configure-pages@v5
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - run: python scripts/build-site.py
+      - uses: actions/configure-pages@v5
         with:
           enabled: true
       - uses: actions/upload-pages-artifact@v3
@@ -49,8 +60,12 @@ jobs:
 
   deploy:
     name: 部署
+    if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

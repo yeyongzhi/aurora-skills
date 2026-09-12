@@ -3,3 +3,4 @@ __pycache__/
 .workbuddy/
 .DS_Store
 Thumbs.db
+scripts/skill-targets.json

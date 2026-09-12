@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; object-src 'none'; base-uri 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#1890ff">
   <title>aurora-skills · Skill 浏览器</title>
@@ -66,9 +67,10 @@
   </main>
 
   <script src="data/skills.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.9.0/highlight.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.9.0/languages/powershell.min.js"></script>
+  <script src="vendor/marked-12.0.2.min.js"></script>
+  <script src="vendor/dompurify-3.1.6.min.js"></script>
+  <script src="vendor/highlight-11.9.0.min.js"></script>
+  <script src="vendor/highlight-powershell-11.9.0.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

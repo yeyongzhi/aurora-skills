@@ -1,0 +1,6 @@
+{
+  "targets": [
+    "%USERPROFILE%\\.agents\\skills",
+    "%USERPROFILE%\\.workbuddy\\skills"
+  ]
+}
