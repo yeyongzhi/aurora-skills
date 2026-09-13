@@ -66,6 +66,30 @@ class SkillToolsTests(unittest.TestCase):
             self.assertNotIn("generatedAt", build_site.render_bundle(first))
             self.assertEqual("软件开发", first["categories"][0]["title"])
 
+    def test_bundle_is_identical_for_lf_and_crlf_checkouts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            skill_dir = root / "sort-skills" / "system" / "business-skill"
+            write_skill(skill_dir, "business-skill")
+            script = skill_dir / "example.ps1"
+            script.write_bytes("# 中文\nWrite-Output 'hello'\n".encode("utf-8"))
+            binary = skill_dir / "example.png"
+            binary.write_bytes(b"\x89PNG\r\n")
+            text_files = [skill_dir / "SKILL.md", script]
+            for path in text_files:
+                path.write_bytes(path.read_bytes().replace(b"\r\n", b"\n"))
+            first = build_site.render_bundle(build_site.build(root))
+            for path in text_files:
+                path.write_bytes(path.read_bytes().replace(b"\n", b"\r\n"))
+            second = build_site.render_bundle(build_site.build(root))
+            self.assertEqual(first, second)
+            files = build_site.collect_files(skill_dir, root)
+            script_entry = next(entry for entry in files if entry["name"] == script.name)
+            self.assertEqual(len(script_entry["content"].encode("utf-8")), script_entry["size"])
+            binary_entry = next(entry for entry in files if entry["name"] == binary.name)
+            self.assertTrue(binary_entry["binary"])
+            self.assertEqual(len(binary.read_bytes()), binary_entry["size"])
+
     def test_lint_includes_project_skills(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

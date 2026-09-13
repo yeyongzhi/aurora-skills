@@ -41,8 +41,7 @@ def category_title(readme: Path | None, fallback: str) -> str:
     return fallback
 
 
-def text_preview(path: Path) -> tuple[str, bool]:
-    raw = path.read_bytes()
+def text_preview(raw: bytes) -> tuple[str, bool]:
     truncated = len(raw) > MAX_FILE_BYTES
     return raw[:MAX_FILE_BYTES].decode("utf-8", errors="replace"), truncated
 
@@ -60,7 +59,11 @@ def collect_files(skill_dir: Path, root: Path) -> list[dict[str, Any]]:
             "size": path.stat().st_size,
         }
         if suffix in TEXT_SUFFIXES:
-            entry["content"], truncated = text_preview(path)
+            # Git checkout line endings differ across platforms. Bundle canonical LF
+            # bytes so both previews and sizes remain deterministic.
+            raw = path.read_bytes().replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+            entry["size"] = len(raw)
+            entry["content"], truncated = text_preview(raw)
             entry["binary"] = False
             if truncated:
                 entry["truncated"] = True
