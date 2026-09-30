@@ -1,6 +1,6 @@
 ---
 name: project-documentation
-description: 当用户提到“项目说明书、项目文档、功能清单、技术开发说明书、项目架构、需求梳理”或 project documentation、product spec、technical design；即使用户只有粗略想法或未明确点名 Skill，也使用本 Skill 先澄清需求并产出一致文档。适用于新项目与已有项目；不适用于通用文档排版或只要求写代码。
+description: 当用户提到“项目说明书、项目文档、功能清单、技术开发说明书、项目架构、需求梳理”或 project documentation、product spec、technical design；即使用户只有粗略想法或未明确点名 Skill，也使用本 Skill 先澄清需求并产出一致文档。适用于新项目需求梳理及现有项目的详细产品/技术文档；仅审查已有代码并生成项目概述.md 时使用 project-overview。
 platform: all
 tags:
   - project-planning
