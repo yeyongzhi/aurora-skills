@@ -57,6 +57,19 @@ src/
   components/ui/
 ```
 
+## UI 组件强制规范
+
+此规范适用于模板示例及基于模板继续开发的所有业务页面，必须严格遵循，不能将其降级为“优先使用”的建议。
+
+- 所有有对应 shadcn-vue 组件的 UI 控件必须从 `@/components/ui/` 导入并使用；允许业务组件封装或组合这些组件。
+- 禁止在业务页面、业务组件中直接使用原生 `button`、`input`、`textarea`、`select`、`option`、`dialog` 等交互控件，也禁止用 `div`、CSS 或其他 UI 库手写替代已有 shadcn-vue 组件。该限制不针对 CLI 生成的 `components/ui/` 内部实现。
+- 文本输入使用 `Input` / `Textarea`，按钮使用 `Button`，选项选择使用 `Select`，禁止使用保留浏览器原生选择交互的 `NativeSelect`；需要搜索选择时采用官方 Combobox 方案。复选、单选和开关分别使用 `Checkbox`、`RadioGroup`、`Switch`。
+- 日期选择必须使用[官方 Date Picker 方案](https://www.shadcn-vue.com/docs/components/date-picker)，通过 `Popover` 与 `Calendar` 组合；日期范围使用 `RangeCalendar` 与官方范围选择方案。禁止使用原生 `input type="date"`、`datetime-local`、`month`、`week` 或浏览器默认日期弹窗。
+- 弹窗、确认框、菜单、提示、标签页、表格和分页等，使用对应的 `Dialog`、`AlertDialog`、`DropdownMenu`、`Tooltip`、`Tabs`、`Table`、`Pagination` 等组件。组件尚未安装时先用当前官方 CLI 添加，不能因为缺少组件而退回原生实现。
+- 普通布局与语义内容可使用 `div`、`section`、`main`、标题、段落、`form` 等 HTML 元素，Tailwind CSS 用于布局和样式；不要把这些元素伪装成已有库组件的替代控件。
+- 官方没有对应组件或组合方案时，先核对官方文档并说明缺口，取得用户明确同意后再采用自定义控件或其他方案；不得自行放宽上述要求。
+- 将本节规则写入生成项目的根目录 `AGENTS.md`；已有文件时合并规则并保留原内容，让后续业务开发持续遵循同一约束。
+
 ## 创建流程
 
 ### 1. 初始化项目
@@ -136,7 +149,7 @@ pnpm dlx shadcn-vue@latest add button
 pnpm dlx shadcn-vue@latest add input label card dialog dropdown-menu select table badge separator skeleton tooltip
 ```
 
-当前 CLI 不支持批量参数时逐个安装。组件已存在时保留现有实现，不使用覆盖参数。
+当前 CLI 不支持批量参数时逐个安装。组件已存在时保留现有实现，不使用覆盖参数。按页面需求追加组件；例如日期选择先添加 `popover`、`calendar`，范围选择再添加 `range-calendar`，组件名及额外依赖以当前官方文档为准。不要预装所有组件，但所有实际使用的控件必须符合 UI 组件强制规范。
 
 首页至少渲染 `Button`、`Card`、`Input` 和 `Badge`，并提供一个触发 Pinia action 的交互。页面只需清晰证明别名、样式、组件、状态和路由工作正常。
 
@@ -155,6 +168,8 @@ pnpm run dev -- --host 127.0.0.1
 
 - `node_modules/`、`dist/` 与本地环境文件会被忽略。
 - `pnpm-lock.yaml`、`components.json` 和 `src/components/ui/` 不会被忽略。
+- 检查所有业务页面与业务组件的控件来源，确认没有原生选择框、日期输入或其他被禁止的替代控件；排除 `src/components/ui/` 内部实现，发现违规必须修正后再交付。
+- 根目录 `AGENTS.md` 已记录 UI 组件强制规范，示例页面也严格遵循。
 - 构建包含类型检查；不得通过禁用插件、删除检查或移除所需依赖掩盖错误。
 
 安装、构建或启动失败时，读取完整错误，修正模板配置并重新验证。网络或权限受限时保留当前项目状态，准确报告失败步骤，不能声称已完成。
