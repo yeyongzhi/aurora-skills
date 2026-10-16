@@ -19,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
@@ -28,11 +30,21 @@ jobs:
       - run: python -m unittest discover -s tests -v
       - run: python scripts/build-site.py --check
       - run: python -m py_compile scripts/build-site.py scripts/lint-skills.py scripts/skill_utils.py
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
       - uses: actions/setup-node@v5
         with:
           node-version: '22'
+          cache: pnpm
+          cache-dependency-path: site/pnpm-lock.yaml
       - run: node --check site/app.js
       - run: node --check site/data/skills.js
+      - run: pnpm install --frozen-lockfile
+        working-directory: site
+      - run: pnpm run build
+        working-directory: site
 
   build:
     name: 生成站点产物
@@ -45,18 +57,35 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
           cache: pip
       - run: python -m pip install -r requirements.txt
       - run: python scripts/build-site.py
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: pnpm
+          cache-dependency-path: site/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+        working-directory: site
+      - run: pnpm run build
+        working-directory: site
+        env:
+          PAGES_BASE: /aurora-skills/
       - uses: actions/configure-pages@v5
         with:
           enabled: true
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: site/dist
 
   deploy:
     name: 部署

@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -23,7 +24,7 @@ H1_RE = re.compile(r"^#\s+(.+)$", re.MULTILINE)
 
 def language_for(suffix: str) -> str:
     return {
-        ".md": "markdown", ".markdown": "markdown", ".ps1": "powershell",
+        ".md": "markdown", ".markdown": "markdown", ".ps1": "powershell", ".psm1": "powershell",
         ".sh": "bash", ".bash": "bash", ".py": "python", ".js": "javascript",
         ".ts": "typescript", ".tsx": "typescript", ".jsx": "javascript",
         ".html": "html", ".htm": "html", ".css": "css", ".json": "json",
@@ -44,6 +45,30 @@ def category_title(readme: Path | None, fallback: str) -> str:
 def text_preview(raw: bytes) -> tuple[str, bool]:
     truncated = len(raw) > MAX_FILE_BYTES
     return raw[:MAX_FILE_BYTES].decode("utf-8", errors="replace"), truncated
+
+
+def skill_dates(skill_dir: Path, root: Path) -> tuple[str, str]:
+    relative_dir = skill_dir.relative_to(root).as_posix()
+    result = subprocess.run(
+        ["git", "log", "--format=%cs", "--reverse", "--", relative_dir],
+        cwd=root,
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    dates = result.stdout.splitlines() if result.returncode == 0 else []
+    return (dates[0], dates[-1]) if dates else ("", "")
+
+
+def skill_title(skill_md: Path, fallback: str) -> str:
+    content = skill_md.read_text(encoding="utf-8")
+    if content.startswith("---"):
+        _, separator, body = content[3:].partition("\n---")
+        if separator:
+            content = body
+    match = H1_RE.search(content)
+    return match.group(1).strip() if match else fallback
 
 
 def collect_files(skill_dir: Path, root: Path) -> list[dict[str, Any]]:
@@ -88,10 +113,15 @@ def build(root: Path) -> dict[str, Any]:
         readme = category_dir / "README.md"
         skills = []
         for skill_dir in sorted(skill_dirs, key=lambda path: path.name):
-            meta = load_frontmatter(skill_dir / "SKILL.md")
+            skill_md = skill_dir / "SKILL.md"
+            meta = load_frontmatter(skill_md)
+            created_at, updated_at = skill_dates(skill_dir, root)
             skills.append({
                 "name": skill_dir.name,
                 "dir": skill_dir.relative_to(root).as_posix(),
+                "title": skill_title(skill_md, skill_dir.name),
+                "createdAt": created_at,
+                "updatedAt": updated_at,
                 "description": meta.get("description", ""),
                 "platform": meta.get("platform", "all"),
                 "tags": meta.get("tags", []),
@@ -109,6 +139,7 @@ def build(root: Path) -> dict[str, Any]:
     if template_md.is_file():
         template_dir = template_md.parent
         meta = load_frontmatter(template_md)
+        created_at, updated_at = skill_dates(template_dir, root)
         template_readme = root / "_templates" / "README.md"
         categories.append({
             "name": "_templates",
@@ -118,6 +149,9 @@ def build(root: Path) -> dict[str, Any]:
             "skills": [{
                 "name": template_dir.name,
                 "dir": template_dir.relative_to(root).as_posix(),
+                "title": skill_title(template_md, template_dir.name),
+                "createdAt": created_at,
+                "updatedAt": updated_at,
                 "description": meta.get("description", ""),
                 "platform": meta.get("platform", "all"),
                 "tags": meta.get("tags", []),
@@ -174,7 +208,7 @@ def main() -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     previous = out.read_text(encoding="utf-8") if out.exists() else None
     if previous != rendered:
-        out.write_text(rendered, encoding="utf-8", newline="\n")
+        out.write_text(rendered, encoding="utf-8")
         action = "已生成"
     else:
         action = "无需更新"

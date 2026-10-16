@@ -4,3 +4,10 @@ __pycache__/
 .DS_Store
 Thumbs.db
 scripts/skill-targets.json
+site/node_modules/
+site/dist/
+site/.npm-cache/
+site/.pnpm-cache/
+site/.pnpm-store/
+site/.pnpm-home/
+site/.vite/

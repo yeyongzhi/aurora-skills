@@ -68,7 +68,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Force
 
 站点：https://yeyongzhi.github.io/aurora-skills/
 
-左侧是分类目录树，右侧是文件内容，右上角一键复制原文，`#` 锚点可直接分享到某个文件，搜索框支持匹配文件名、标签和正文内容（按 `/` 聚焦）。
+左侧是可展开的分类目录树，右侧是文件阅读区。支持搜索 Skill 标题、分类、标签、文件名与正文（按 `/` 聚焦）、收藏筛选、深浅主题、Markdown/源码切换、复制、文件锚点直链，以及查看所有 Skill 的标题、用途和创建/更新日期。
 
 ```bash
 python -m pip install -r requirements.txt
@@ -76,7 +76,15 @@ python scripts/build-site.py          # 生成 site/data/skills.js
 python scripts/build-site.py --check  # 仅检查生成数据是否过期
 ```
 
-浏览器读不到仓库目录结构，所以需要这一步把内容聚合成数据文件。生成后本地双击 `site/index.html` 同样能看——数据通过 `<script>` 注入而非 `fetch`，`file://` 下不会被 CORS 拦掉。
+本地启动站点：
+
+```bash
+cd site
+pnpm install
+pnpm dev
+```
+
+运行 `pnpm run build` 会先刷新技能数据，再执行 Vue 类型检查并构建到 `site/dist/`。浏览器需要通过本地开发服务器访问；不要直接双击 `site/index.html`。
 
 每次 push 到 `master`，[`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) 会自动重新生成并部署，线上始终是最新的。**首次使用需到仓库 Settings → Pages → Source 选择 GitHub Actions。**
 

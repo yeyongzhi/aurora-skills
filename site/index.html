@@ -1,76 +1,15 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; object-src 'none'; base-uri 'none'">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#1890ff">
-  <title>aurora-skills · Skill 浏览器</title>
-  <meta name="description" content="浏览、检索与复制 aurora-skills 仓库中的 Agent Skills 内容。">
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <header class="topbar">
-    <a class="brand" href="#" aria-label="aurora-skills 首页">
-      <span class="brand-mark" aria-hidden="true">A</span>
-      <span class="brand-copy"><strong>aurora-skills</strong><small>Agent Skill Library</small></span>
-    </a>
-    <div class="stats" id="stats" aria-live="polite"></div>
-    <label class="search-wrap" for="search">
-      <span class="search-icon" aria-hidden="true"></span>
-      <input id="search" type="search" placeholder="搜索 skill、标签或内容" autocomplete="off">
-      <kbd>/</kbd>
-    </label>
-  </header>
-
-  <main>
-    <aside id="sidebar" aria-label="Skill 目录">
-      <div class="sidebar-heading">
-        <span class="sidebar-title">资源目录</span>
-        <div class="tree-actions" aria-label="目录展开控制">
-          <button id="toggle-all" type="button" aria-expanded="false">全部展开</button>
-        </div>
-      </div>
-      <nav id="tree"></nav>
-    </aside>
-
-    <section id="content" aria-label="文件内容">
-      <div id="placeholder">
-        <p class="eyebrow">A CURATED SKILL LIBRARY</p>
-        <h1>把常用能力，整理成随时可复用的 Skill。</h1>
-        <p class="lead">从左侧选择一个 skill，阅读完整说明、辅助脚本与参考资料，并可一键复制到你的工作流中。</p>
-        <div class="feature-grid">
-          <div class="feature-card"><strong>清晰阅读</strong><span>精心排版的 Markdown 预览</span></div>
-          <div class="feature-card"><strong>快速检索</strong><span>按 <kbd>/</kbd> 搜索名称、标签与正文</span></div>
-          <div class="feature-card"><strong>轻松复用</strong><span>一键复制完整原文</span></div>
-        </div>
-        <p class="hint">仓库内容更新后，运行 <code>python scripts/build-site.py</code> 即可刷新数据。</p>
-      </div>
-
-      <div id="viewer" hidden>
-        <div class="toolbar">
-          <div class="crumb" id="crumb"></div>
-          <div class="toolbar-actions">
-            <div class="seg" aria-label="阅读模式">
-              <button id="view-render" class="on" type="button">阅读</button>
-              <button id="view-raw" type="button">源码</button>
-            </div>
-            <button id="copy" class="btn primary" type="button">复制内容</button>
-          </div>
-        </div>
-        <div class="file-meta" id="file-meta"></div>
-        <div id="raw-notice" class="notice" hidden></div>
-        <article class="doc markdown-body" id="rendered"></article>
-        <pre class="doc raw" id="raw" hidden><code id="raw-code"></code></pre>
-      </div>
-    </section>
-  </main>
-
-  <script src="data/skills.js"></script>
-  <script src="vendor/marked-12.0.2.min.js"></script>
-  <script src="vendor/dompurify-3.1.6.min.js"></script>
-  <script src="vendor/highlight-11.9.0.min.js"></script>
-  <script src="vendor/highlight-powershell-11.9.0.min.js"></script>
-  <script src="app.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; object-src 'none'; base-uri 'none'" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="浏览、检索与复用 aurora-skills 仓库中的 Agent Skills。" />
+    <title>aurora-skills · Skill 浏览器</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script src="src/main.ts" type="module"></script>
+  </body>
 </html>
