@@ -70,7 +70,9 @@ function toggleCurrentFavorite() {
 }
 
 let copyTimer: ReturnType<typeof setTimeout> | undefined
+let nameCopyTimer: ReturnType<typeof setTimeout> | undefined
 const isCopied = shallowRef(false)
+const isNameCopied = shallowRef(false)
 
 function fallbackCopy(text: string): boolean {
   const textarea = document.createElement('textarea')
@@ -90,10 +92,8 @@ function fallbackCopy(text: string): boolean {
   }
 }
 
-async function copyCurrentFile() {
-  if (!library.currentFile) return
+async function copyText(content: string): Promise<boolean> {
   try {
-    const content = library.currentFile.content
     if (navigator.clipboard?.writeText) {
       try {
         await navigator.clipboard.writeText(content)
@@ -103,13 +103,28 @@ async function copyCurrentFile() {
     } else if (!fallbackCopy(content)) {
       throw new Error('clipboard unavailable')
     }
-    isCopied.value = true
-    if (copyTimer) clearTimeout(copyTimer)
-    copyTimer = setTimeout(() => { isCopied.value = false }, 1500)
-    toast.success('复制成功', { description: '文件内容已复制到剪贴板。' })
+    return true
   } catch {
     toast.error('复制失败', { description: '浏览器没有授予剪贴板访问权限。' })
+    return false
   }
+}
+
+async function copyCurrentFile() {
+  if (!library.currentFile || !await copyText(library.currentFile.content)) return
+  isCopied.value = true
+  if (copyTimer) clearTimeout(copyTimer)
+  copyTimer = setTimeout(() => { isCopied.value = false }, 1500)
+  toast.success('复制成功', { description: '文件内容已复制到剪贴板。' })
+}
+
+async function copyCurrentSkillName() {
+  const name = library.currentSkill?.dir.split('/').filter(Boolean).pop()?.toLowerCase()
+  if (!name || !await copyText(name)) return
+  isNameCopied.value = true
+  if (nameCopyTimer) clearTimeout(nameCopyTimer)
+  nameCopyTimer = setTimeout(() => { isNameCopied.value = false }, 1500)
+  toast.success('名称已复制', { description: name })
 }
 
 onMounted(() => {
@@ -121,9 +136,12 @@ onUnmounted(() => {
   window.removeEventListener('hashchange', onHashChange)
   document.removeEventListener('keydown', onKeyDown)
   if (copyTimer) clearTimeout(copyTimer)
+  if (nameCopyTimer) clearTimeout(nameCopyTimer)
 })
 
 watch(() => library.currentFile?.path, (path) => {
+  isCopied.value = false
+  isNameCopied.value = false
   if (path) document.title = `${library.currentSkill?.name ?? 'Skill'} · aurora-skills`
 }, { immediate: true })
 </script>
@@ -149,6 +167,7 @@ watch(() => library.currentFile?.path, (path) => {
           :mode="library.mode"
           :is-favorite="currentIsFavorite"
           :copied="isCopied"
+          :name-copied="isNameCopied"
           :previous-file="library.previousFile"
           :next-file="library.nextFile"
           :position="position"
@@ -156,6 +175,7 @@ watch(() => library.currentFile?.path, (path) => {
           @change-mode="library.setMode"
           @toggle-favorite="toggleCurrentFavorite"
           @copy="copyCurrentFile"
+          @copy-name="copyCurrentSkillName"
           @navigate="library.selectFile"
         />
       </main>

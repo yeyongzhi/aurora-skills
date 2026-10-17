@@ -22,7 +22,7 @@ import xml from 'highlight.js/lib/languages/xml'
 import yaml from 'highlight.js/lib/languages/yaml'
 import 'highlight.js/styles/github.css'
 import {
-  ArrowLeft, ArrowRight, BookOpen, Check, Copy, ExternalLink, Star,
+  ArrowLeft, ArrowRight, BookOpen, Check, Clock, Copy, ExternalLink, FileText, Star,
 } from '@lucide/vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -39,6 +39,7 @@ const props = defineProps<{
   mode: 'render' | 'raw'
   isFavorite: boolean
   copied: boolean
+  nameCopied: boolean
   previousFile: SkillFile | null
   nextFile: SkillFile | null
   position: number
@@ -49,6 +50,7 @@ const emit = defineEmits<{
   changeMode: [mode: 'render' | 'raw']
   toggleFavorite: []
   copy: []
+  copyName: []
   navigate: [path: string]
 }>()
 
@@ -128,11 +130,6 @@ onUpdated(highlightMarkdown)
           <span class="reader-identity-separator" aria-hidden="true">/</span>
           <div class="reader-toolbar-title">{{ title }}</div>
         </div>
-        <Badge variant="outline" class="reader-size-badge">{{ humanSize(file.size) }}</Badge>
-        <div class="reader-skill-dates" aria-label="当前 Skill 日期">
-          <span><strong>创建日期</strong> {{ skill.createdAt || '—' }}</span>
-          <span><strong>更新日期</strong> {{ skill.updatedAt || '—' }}</span>
-        </div>
         <div class="reader-actions">
           <Tabs :model-value="mode" @update:model-value="handleMode">
             <TabsList class="h-8 rounded-lg">
@@ -140,17 +137,50 @@ onUpdated(highlightMarkdown)
               <TabsTrigger value="raw" class="px-3 text-xs">源码</TabsTrigger>
             </TabsList>
           </Tabs>
+          <div class="flex items-center gap-1" role="group" aria-label="文件信息与收藏">
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <Button variant="ghost" size="icon" class="icon-control" :aria-label="`文件大小：${humanSize(file.size)}`">
+                  <FileText />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>文件大小：{{ humanSize(file.size) }}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <Button variant="ghost" size="icon" class="icon-control" aria-label="查看 Skill 创建和更新时间">
+                  <Clock />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <div class="flex flex-col gap-1">
+                  <span>创建日期：{{ skill.createdAt || '—' }}</span>
+                  <span>更新日期：{{ skill.updatedAt || '—' }}</span>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <Button variant="outline" size="icon" class="icon-control" :aria-label="isFavorite ? '取消收藏' : '收藏此文件'" @click="emit('toggleFavorite')">
+                  <Star :size="15" :fill="isFavorite ? 'currentColor' : 'none'" :class="isFavorite ? 'text-primary' : ''" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{{ isFavorite ? '取消收藏' : '加入收藏' }}</TooltipContent>
+            </Tooltip>
+          </div>
           <Tooltip>
             <TooltipTrigger as-child>
-              <Button variant="outline" size="icon" class="icon-control" :aria-label="isFavorite ? '取消收藏' : '收藏此文件'" @click="emit('toggleFavorite')">
-                <Star :size="15" :fill="isFavorite ? 'currentColor' : 'none'" :class="isFavorite ? 'text-primary' : ''" />
+              <Button variant="outline" size="sm" class="action-button" aria-label="复制 Skill 名称" @click="emit('copyName')">
+                <Check v-if="nameCopied" data-icon="inline-start" />
+                <Copy v-else data-icon="inline-start" />
+                <span class="desktop-label">{{ nameCopied ? '已复制名称' : '复制名称' }}</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>{{ isFavorite ? '取消收藏' : '加入收藏' }}</TooltipContent>
+            <TooltipContent>{{ nameCopied ? 'Skill 名称已复制' : '复制 Skill 名称（文件夹名）' }}</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger as-child>
-              <Button size="sm" class="action-button" @click="emit('copy')">
+              <Button size="sm" class="action-button" aria-label="复制文件内容" @click="emit('copy')">
                 <Check v-if="copied" :size="14" />
                 <Copy v-else :size="14" />
                 <span class="desktop-label">{{ copied ? '已复制' : '复制内容' }}</span>

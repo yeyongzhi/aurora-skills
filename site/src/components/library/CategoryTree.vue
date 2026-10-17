@@ -121,19 +121,24 @@ function toggleAll() {
 
           <div v-if="expandedCategories.has(category.name)" class="tree-category-content">
             <div v-for="{ skill, files } in skills" :key="skill.dir" class="tree-skill">
-              <Button
-                variant="ghost"
-                class="tree-row tree-skill-button"
-                :aria-expanded="expandedSkills.has(skill.dir)"
-                @click="() => { toggleSkill(skill.dir); const main = skill.files.find((file) => file.name === 'SKILL.md') ?? skill.files[0]; if (main) emit('selectFile', main.path) }"
-              >
-                <ChevronDown v-if="expandedSkills.has(skill.dir)" :size="13" />
-                <ChevronRight v-else :size="13" />
-                <BookOpen :size="14" class="skill-icon" />
-                <span class="tree-label">{{ skill.name }}</span>
-                <Badge v-if="skill.platform && skill.platform !== 'all'" variant="outline" class="tree-platform-badge">{{ skill.platform === 'windows' ? 'win' : skill.platform }}</Badge>
-                <span class="tree-count">{{ files.length }}</span>
-              </Button>
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <Button
+                    variant="ghost"
+                    class="tree-row tree-skill-button"
+                    :aria-expanded="expandedSkills.has(skill.dir)"
+                    @click="() => { toggleSkill(skill.dir); const main = skill.files.find((file) => file.name === 'SKILL.md') ?? skill.files[0]; if (main) emit('selectFile', main.path) }"
+                  >
+                    <ChevronDown v-if="expandedSkills.has(skill.dir)" :size="13" />
+                    <ChevronRight v-else :size="13" />
+                    <BookOpen :size="14" class="skill-icon" />
+                    <span class="tree-label">{{ skill.name }}</span>
+                    <Badge v-if="skill.platform && skill.platform !== 'all'" variant="outline" class="tree-platform-badge">{{ skill.platform === 'windows' ? 'win' : skill.platform }}</Badge>
+                    <span class="tree-count">{{ files.length }}</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right"><span class="break-all">{{ skill.name }}</span></TooltipContent>
+              </Tooltip>
 
               <div v-if="expandedSkills.has(skill.dir)" class="tree-files">
                 <Button
