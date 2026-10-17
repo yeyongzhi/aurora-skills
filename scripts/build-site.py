@@ -185,6 +185,36 @@ def render_bundle(data: dict[str, Any]) -> str:
     ) + ";\n"
 
 
+def bundle_matches(source: str, expected: dict[str, Any]) -> bool:
+    """Check source content without requiring pre-commit Git dates to match."""
+    prefix = "window.__SKILLS__ = "
+    source = source.strip()
+    if not source.startswith(prefix) or not source.endswith(";"):
+        return False
+    try:
+        actual = json.loads(source[len(prefix):-1])
+        # Dates derive from Git history, which changes when a Skill is committed.
+        # The production build always regenerates them from the final checkout.
+        def without_dates(data: dict[str, Any]) -> dict[str, Any]:
+            return {
+                **data,
+                "categories": [
+                    {
+                        **category,
+                        "skills": [
+                            {key: value for key, value in skill.items()
+                             if key not in {"createdAt", "updatedAt"}}
+                            for skill in category["skills"]
+                        ],
+                    }
+                    for category in data["categories"]
+                ],
+            }
+        return without_dates(actual) == without_dates(expected)
+    except (ValueError, KeyError, TypeError, AttributeError):
+        return False
+
+
 def main() -> int:
     here = Path(__file__).resolve().parent
     parser = argparse.ArgumentParser()
@@ -199,7 +229,7 @@ def main() -> int:
     rendered = render_bundle(data)
 
     if args.check:
-        if not out.exists() or out.read_text(encoding="utf-8") != rendered:
+        if not out.exists() or not bundle_matches(out.read_text(encoding="utf-8"), data):
             print(f"{out.relative_to(root).as_posix()} 不是最新，请运行 build-site.py")
             return 1
         print(f"{out.relative_to(root).as_posix()} 已是最新")

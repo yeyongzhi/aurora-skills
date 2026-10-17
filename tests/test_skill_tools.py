@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -37,6 +38,30 @@ def write_skill(path: Path, name: str, description: str = "用于测试复杂 YA
 
 
 class SkillToolsTests(unittest.TestCase):
+    def test_bundle_check_survives_commit_but_rejects_stale_content(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            skill_dir = root / "sort-skills" / "development" / "business-skill"
+            write_skill(skill_dir, "business-skill")
+            subprocess.run(["git", "init", str(root)], check=True, capture_output=True)
+            before_commit = build_site.render_bundle(build_site.build(root))
+            subprocess.run(["git", "add", "."], cwd=root, check=True, capture_output=True)
+            subprocess.run(
+                ["git", "-c", "user.name=Test", "-c", "user.email=test@example.com",
+                 "-c", "commit.gpgsign=false", "commit", "-m", "Add skill"],
+                cwd=root, check=True, capture_output=True,
+            )
+            after_commit = build_site.build(root)
+            self.assertTrue(after_commit["categories"][0]["skills"][0]["createdAt"])
+            self.assertNotEqual(before_commit, build_site.render_bundle(after_commit))
+            self.assertTrue(build_site.bundle_matches(before_commit, after_commit))
+            self.assertFalse(build_site.bundle_matches("window.__SKILLS__ = invalid;", after_commit))
+            self.assertFalse(build_site.bundle_matches("window.__SKILLS__ = {};", after_commit))
+            # Real source edits must still require the tracked bundle to be rebuilt.
+            with (skill_dir / "SKILL.md").open("a", encoding="utf-8") as stream:
+                stream.write("\nNew feature documentation.\n")
+            self.assertFalse(build_site.bundle_matches(before_commit, build_site.build(root)))
+
     def test_yaml_and_declared_roots(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
