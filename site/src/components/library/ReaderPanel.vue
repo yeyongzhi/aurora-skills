@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, onUpdated, useTemplateRef } from 'vue'
+import { computed, onMounted, onUpdated, ref, useTemplateRef, watch } from 'vue'
+import DocumentOutline, { type OutlineHeading } from './DocumentOutline.vue'
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 import hljs from 'highlight.js/lib/core'
@@ -78,15 +79,51 @@ const title = computed(() => {
     : null
   return heading || props.file.name
 })
-const markdownHtml = computed(() => {
-  if (!props.file || !isMarkdown.value) return ''
+const markdownDocument = computed(() => {
+  if (!props.file || !isMarkdown.value) return { html: '', headings: [] as OutlineHeading[] }
   const html = marked.parse(stripFrontmatter(props.file.content), { async: false })
-  return DOMPurify.sanitize(html, {
+  const safeHtml = DOMPurify.sanitize(html, {
     USE_PROFILES: { html: true },
     FORBID_TAGS: ['style', 'iframe', 'object', 'embed'],
     FORBID_ATTR: ['style'],
   })
+  const document = new DOMParser().parseFromString(safeHtml, 'text/html')
+  const headings: OutlineHeading[] = []
+  const stack: OutlineHeading[] = []
+  document.querySelectorAll('h1,h2,h3,h4,h5,h6').forEach((element, index) => {
+    const level = Number(element.tagName.slice(1))
+    while (stack.length && stack[stack.length - 1]!.level >= level) stack.pop()
+    const heading = { id: `document-heading-${index}`, text: element.textContent?.trim() || '无标题', level, ancestors: stack.map((item) => item.id) }
+    element.id = heading.id
+    headings.push(heading)
+    stack.push(heading)
+  })
+  return { html: document.body.innerHTML, headings }
 })
+const markdownHtml = computed(() => markdownDocument.value.html)
+const activeHeading = ref('')
+watch(() => props.file?.path, () => { activeHeading.value = '' })
+
+function selectHeading(id: string) {
+  const heading = markdownRef.value?.querySelector<HTMLElement>(`#${id}`)
+  const viewport = markdownRef.value?.closest('[data-slot="scroll-area-viewport"]')
+  if (!heading || !viewport) return
+  viewport.scrollTo({ top: viewport.scrollTop + heading.getBoundingClientRect().top - viewport.getBoundingClientRect().top - 20, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })
+  activeHeading.value = id
+}
+
+function updateActiveHeading(event: Event) {
+  const viewport = event.target
+  if (!(viewport instanceof HTMLElement) || !viewport.matches('[data-slot="scroll-area-viewport"]')) return
+  const headings = markdownRef.value?.querySelectorAll<HTMLElement>('h1,h2,h3,h4,h5,h6')
+  if (!headings?.length) return
+  let current = headings[0]!.id
+  for (const heading of headings) {
+    if (heading.getBoundingClientRect().top > viewport.getBoundingClientRect().top + 40) break
+    current = heading.id
+  }
+  activeHeading.value = current
+}
 const rawHtml = computed(() => {
   if (!props.file || props.file.binary) return ''
   const language = hljs.getLanguage(props.file.lang) ? props.file.lang : 'plaintext'
@@ -191,6 +228,7 @@ onUpdated(highlightMarkdown)
         </div>
       </header>
 
+      <div class="reader-body" @scroll.capture="updateActiveHeading">
       <ScrollArea class="document-scroll">
         <div class="document-content">
           <div class="reader-intro" :class="{ 'reader-intro-markdown': isMarkdown }">
@@ -211,6 +249,8 @@ onUpdated(highlightMarkdown)
           <pre v-else-if="!file.binary" class="raw-code"><code v-html="rawHtml" /></pre>
         </div>
       </ScrollArea>
+      <DocumentOutline v-if="mode === 'render' && isMarkdown && !file.binary && markdownDocument.headings.length" :key="file.path" :headings="markdownDocument.headings" :active-id="activeHeading" @select="selectHeading" />
+      </div>
 
       <footer class="reader-footer">
         <div>{{ position }} / {{ total }} 个资源</div>
