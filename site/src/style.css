@@ -290,7 +290,7 @@
   .dark .hljs-keyword, .dark .hljs-selector-tag, .dark .hljs-literal, .dark .hljs-section, .dark .hljs-link { color: #f97583; }
   .dark .hljs-string, .dark .hljs-title, .dark .hljs-name, .dark .hljs-type, .dark .hljs-attribute { color: #9ecbff; }
   .dark .hljs-comment, .dark .hljs-quote, .dark .hljs-meta { color: #8b949e; }
-  .raw-code { max-width: 960px; margin: 20px 0 0; overflow: auto; padding: 24px; border: 1px solid var(--border); border-radius: 12px; background: color-mix(in oklch, var(--muted) 50%, var(--card)); font: 12px/1.75 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre; }
+  .raw-code { margin: 20px 0 0; overflow: auto; padding: 24px; border: 1px solid var(--border); border-radius: 12px; background: color-mix(in oklch, var(--muted) 50%, var(--card)); font: 12px/1.75 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre; }
   .notice { margin: 20px 0 0; padding: 12px 14px; border: 1px solid color-mix(in oklch, var(--primary) 24%, var(--border)); border-radius: 10px; background: var(--accent); color: var(--accent-foreground); font-size: 12px; }
   .reader-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 22px; border-top: 1px solid var(--border); color: var(--muted-foreground); font-size: 11px; }
   .reader-footer a { display: inline-flex; align-items: center; gap: 6px; color: var(--primary); text-decoration: none; }
